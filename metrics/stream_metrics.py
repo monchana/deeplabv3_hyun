@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-BACKGROUND_CLASS=0
 
 class _StreamMetrics(object):
     def __init__(self):
@@ -28,8 +27,9 @@ class StreamSegMetrics(_StreamMetrics):
     """
     Stream Metrics for Semantic Segmentation Task
     """
-    def __init__(self, n_classes):
+    def __init__(self, n_classes, background_class):
         self.n_classes = n_classes
+        self.background_class = background_class
         self.confusion_matrix = np.zeros((n_classes, n_classes))
 
     def update(self, label_trues, label_preds):
@@ -41,8 +41,10 @@ class StreamSegMetrics(_StreamMetrics):
         for lt, lp in zip(label_trues, label_preds):
             lpf = lp.flatten()
             ulp = np.unique(lpf)
-            ulp_nbg = ulp[ulp!=BACKGROUND_CLASS]
-            target_class = ulp_nbg[0]
+            
+            # remove background class (sorted as zero)
+            ulp_nbg = ulp[ulp!=self.background_class]
+            target_class = ulp_nbg[0] # only single class remains
             self.confusion_matrix += self._fast_hist_hyun(lt.flatten(), lpf, target_class)
         
     @staticmethod
@@ -71,17 +73,14 @@ class StreamSegMetrics(_StreamMetrics):
     def _fast_hist_hyun(self, label_true, label_pred, target_class):
         # 255를 제거하기 위한 행동
         # mask = (label_true >= 0) & (label_true < self.n_classes)
-        # 이건 test 해야하는 코드 - 되는지만 보려고
+        # 기존의 mask (255)에 추가로 특정 class에 해당하는 부분만 놔두기
         mask = (label_true >= 0) & (label_true < self.n_classes) & ((label_true==target_class)|(label_pred==target_class))
         hist = np.bincount(
             self.n_classes * label_true[mask].astype(int) + label_pred[mask],
             minlength=self.n_classes ** 2,
         ).reshape(self.n_classes, self.n_classes)
         return hist
-    
-    
-    # Hyun Edit : Batch 단위로 들어가지 않나? 추가확인이 필요함 - 그렇지 않을경우, 많은 문제가 해결됨 => main_syn 등에서 validation 코드 돌려서 \
-        # 추가확인이 필요함 
+   
     def get_results(self):
         """Returns accuracy score evaluation result.
             - overall accuracy
@@ -107,7 +106,8 @@ class StreamSegMetrics(_StreamMetrics):
                 "Class IoU": cls_iu,
             }
     
-    # Hyun Edit
+     # Hyun Edit : Batch 단위로 들어가지 않나? 추가확인이 필요함 - 그렇지 않을경우, 많은 문제가 해결됨 => main_syn 등에서 validation 코드 돌려서 \
+        # 추가확인이 필요함 / evaluate using histogram
     def get_results_hyun(self):
         """Returns accuracy score evaluation result.
             - overall accuracy

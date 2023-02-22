@@ -7,6 +7,8 @@ from pycocotools import mask as coco_mask
 # target_anno_path = 'hyun/samples/voc_seg_230114_dev-scale_7.5-ca_step_0.0_0.5/annotations.json'
 # gt_anno_path = 'annotation_gt.json'
 
+
+
 def evaluate_iou(target_anno_path, gt_anno_path, data_type='voc'):
     """
     Args:
@@ -32,7 +34,7 @@ def evaluate_iou(target_anno_path, gt_anno_path, data_type='voc'):
     elif data_type == 'cityscapes':
         num_classes = 19
     
-    metrics = StreamSegMetrics(num_classes)
+    metrics = StreamSegMetrics(num_classes, background_class=0)
     # metric에서 어차피 np니까 비교하고, decode써서 np 만들자
 
     true_labels = gt_anno['annotations']

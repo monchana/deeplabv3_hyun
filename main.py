@@ -266,7 +266,7 @@ def main():
     utils.set_bn_momentum(model.backbone, momentum=0.01)
 
     # Set up metrics
-    metrics = StreamSegMetrics(opts.num_classes)
+    metrics = StreamSegMetrics(opts.num_classes, background_class=0)
 
     # Set up optimizer
     optimizer = torch.optim.SGD(params=[

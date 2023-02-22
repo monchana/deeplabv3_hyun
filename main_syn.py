@@ -336,7 +336,7 @@ def main():
     utils.set_bn_momentum(model.backbone, momentum=0.01)
 
     # Set up metrics
-    metrics = StreamSegMetrics(opts.num_classes)
+    metrics = StreamSegMetrics(opts.num_classes, background_class=0)
 
     # Set up optimizer
     optimizer = torch.optim.SGD(params=[
@@ -501,17 +501,17 @@ def main():
                     # save_ckpt('checkpoints/best_%s_%s_os%d.pth' % (opts.model, opts.dataset, opts.output_stride))
                     save_ckpt(osp.join(opts.save_dir, 'syn', f'best_{opts.model}_{opts.dataset}_os{opts.output_stride}.pth'))
 
-                if vis is not None:  # visualize validation score and samples
-                    vis.vis_scalar("[SYN Val] Overall Acc", cur_itrs, syn_val_score['Overall Acc'])
-                    vis.vis_scalar("[SYN Val] Mean IoU", cur_itrs, syn_val_score['Mean IoU'])
-                    vis.vis_table("[SYN Val] Class IoU", syn_val_score['Class IoU'])
+                # if vis is not None:  # visualize validation score and samples
+                #     vis.vis_scalar("[SYN Val] Overall Acc", cur_itrs, syn_val_score['Overall Acc'])
+                #     vis.vis_scalar("[SYN Val] Mean IoU", cur_itrs, syn_val_score['Mean IoU'])
+                #     vis.vis_table("[SYN Val] Class IoU", syn_val_score['Class IoU'])
 
-                    for k, (img, target, lbl) in enumerate(syn_ret_samples):
-                        img = (denorm(img) * 255).astype(np.uint8)
-                        target = train_dst.decode_target(target).transpose(2, 0, 1).astype(np.uint8)
-                        lbl = train_dst.decode_target(lbl).transpose(2, 0, 1).astype(np.uint8)
-                        concat_img = np.concatenate((img, target, lbl), axis=2)  # concat along width
-                        vis.vis_image('Sample %d' % k, concat_img)
+                #     for k, (img, target, lbl) in enumerate(syn_ret_samples):
+                #         img = (denorm(img) * 255).astype(np.uint8)
+                #         target = train_dst.decode_target(target).transpose(2, 0, 1).astype(np.uint8)
+                #         lbl = train_dst.decode_target(lbl).transpose(2, 0, 1).astype(np.uint8)
+                #         concat_img = np.concatenate((img, target, lbl), axis=2)  # concat along width
+                #         vis.vis_image('Sample %d' % k, concat_img)
                 
                 
                 model.train()
